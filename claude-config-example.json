@@ -5,7 +5,7 @@
       "args": [],
       "cwd": "/absolute/path/to/coderabbitai-mcp",
       "env": {
-        "GITHUB_PERSONAL_ACCESS_TOKEN": "ghp_your_token_here",
+        "GITHUB_PAT": "ghp_your_token_here",
         "CODERABBIT_LOG_LEVEL": "info"
       }
     }
@@ -20,7 +20,7 @@
 //       "args": ["dist/index.js"],
 //       "cwd": "/absolute/path/to/coderabbitai-mcp",
 //       "env": {
-//         "GITHUB_PERSONAL_ACCESS_TOKEN": "ghp_your_token_here"
+//         "GITHUB_PAT": "ghp_your_token_here"
 //       }
 //     }
 //   }
@@ -35,7 +35,7 @@
 //         "run",
 //         "--rm",
 //         "-i",
-//         "-e", "GITHUB_PERSONAL_ACCESS_TOKEN=ghp_your_token_here",
+//         "-e", "GITHUB_PAT=ghp_your_token_here",
 //         "coderabbitai-mcp"
 //       ]
 //     }

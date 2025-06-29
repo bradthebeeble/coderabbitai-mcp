@@ -6,11 +6,11 @@ import { CodeRabbitMCPServer } from "./server.js";
  * Main entry point for the CodeRabbit MCP Server
  */
 async function main() {
-  // Ensure GITHUB_PERSONAL_ACCESS_TOKEN is set
-  if (!process.env.GITHUB_PERSONAL_ACCESS_TOKEN) {
-    console.error("❌ Error: GITHUB_PERSONAL_ACCESS_TOKEN environment variable is required");
+  // Ensure GITHUB_PAT is set
+  if (!process.env.GITHUB_PAT) {
+    console.error("❌ Error: GITHUB_PAT environment variable is required");
     console.error("   Please set your GitHub Personal Access Token as an environment variable");
-    console.error("   Example: export GITHUB_PERSONAL_ACCESS_TOKEN=ghp_your_token_here");
+    console.error("   Example: export GITHUB_PAT=ghp_your_token_here");
     process.exit(1);
   }
 

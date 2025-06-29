@@ -9,37 +9,26 @@ A Model Context Protocol (MCP) server for interacting with CodeRabbit AI reviews
 - **Extract Comments**: Get individual line comments with AI prompts and suggestions
 - **Comment Details**: Deep dive into specific comments with context and fix examples
 - **Resolve Comments**: Mark comments as addressed, won't fix, or not applicable
+- **Automated Workflow Prompt**: Use `/coderabbit-review` slash command for complete review processing
 
-## Installation
+## Quick Start
 
-### Quick Start (Recommended)
+### Installation (NPX - Recommended)
 
-The easiest way to use this MCP server is via npx - no installation required:
+No installation required! Run directly with npx:
 
 ```bash
-# Run directly with npx (latest version)
 npx coderabbitai-mcp
 ```
 
 ### Prerequisites
 
-1. **GitHub Personal Access Token**: Required for GitHub API access
-   - Create at: https://github.com/settings/tokens
+1. **GitHub Personal Access Token**: Create at https://github.com/settings/tokens
    - Required scopes: `repo` (for private repos) or `public_repo` (for public only)
 2. **Node.js 18+**: Required for running the server
 
-### Development Installation
-
-For development or local customization:
-
-```bash
-git clone https://github.com/bradthebeeble/coderabbitai-mcp.git
-cd coderabbitai-mcp
-npm install
-npm run build
-```
-
-## Configuration
+<details>
+<summary>Configuration</summary>
 
 ### Claude Desktop
 
@@ -48,7 +37,6 @@ Add to your Claude Desktop configuration file:
 **macOS**: `~/Library/Application Support/Claude/claude_desktop_config.json`
 **Windows**: `%APPDATA%/Claude/claude_desktop_config.json`
 
-#### Option 1: NPX (Recommended)
 ```json
 {
   "mcpServers": {
@@ -56,23 +44,7 @@ Add to your Claude Desktop configuration file:
       "command": "npx",
       "args": ["coderabbitai-mcp"],
       "env": {
-        "GITHUB_PERSONAL_ACCESS_TOKEN": "ghp_your_token_here"
-      }
-    }
-  }
-}
-```
-
-#### Option 2: Local Installation
-```json
-{
-  "mcpServers": {
-    "coderabbitai": {
-      "command": "/absolute/path/to/coderabbitai-mcp/start.sh",
-      "args": [],
-      "cwd": "/absolute/path/to/coderabbitai-mcp",
-      "env": {
-        "GITHUB_PERSONAL_ACCESS_TOKEN": "ghp_your_token_here"
+        "GITHUB_PAT": "ghp_your_token_here"
       }
     }
   }
@@ -83,7 +55,6 @@ Add to your Claude Desktop configuration file:
 
 Add to your project's `.claude/config.json`:
 
-#### Option 1: NPX (Recommended)
 ```json
 {
   "mcpServers": {
@@ -91,80 +62,41 @@ Add to your project's `.claude/config.json`:
       "command": "npx",
       "args": ["coderabbitai-mcp"],
       "env": {
-        "GITHUB_PERSONAL_ACCESS_TOKEN": "ghp_your_token_here"
+        "GITHUB_PAT": "ghp_your_token_here"
       }
     }
   }
 }
 ```
 
-#### Option 2: Local Installation
-```json
-{
-  "mcpServers": {
-    "coderabbitai": {
-      "command": "/absolute/path/to/coderabbitai-mcp/start.sh", 
-      "args": [],
-      "cwd": "/absolute/path/to/coderabbitai-mcp",
-      "env": {
-        "GITHUB_PERSONAL_ACCESS_TOKEN": "ghp_your_token_here"
-      }
-    }
-  }
-}
-```
-
-### Environment Variables
-
-Create a `.env` file (optional):
-
-```bash
-# GitHub Configuration
-GITHUB_PERSONAL_ACCESS_TOKEN=ghp_your_token_here
-
-# Optional: CodeRabbit MCP Configuration
-CODERABBIT_LOG_LEVEL=info
-```
-
-### Docker (Alternative)
-
-```bash
-# Build the image
-docker build -t coderabbitai-mcp .
-
-# Run with Docker Compose
-docker run --rm \
-  -e GITHUB_PERSONAL_ACCESS_TOKEN=your_token \
-  coderabbitai-mcp
-```
+</details>
 
 ## Usage
 
-### Prerequisites
+### Automated Review Processing (Recommended)
 
-1. **GitHub Personal Access Token**: Ensure your token has access to the repositories you want to analyze
-2. **Repository Access**: You need read access to repositories with CodeRabbit reviews
+Use the built-in MCP prompt for complete workflow automation:
 
-### Starting the Server
-
-The server is automatically started by your MCP client (Claude Desktop/Code) when configured properly.
-
-For manual testing:
-
-```bash
-export GITHUB_PERSONAL_ACCESS_TOKEN=ghp_your_token_here
-npm start
+```
+/coderabbit-review owner:bradthebeeble repo:wiseguys pullNumber:15
 ```
 
-The server runs on stdio transport and integrates with MCP-compatible clients.
+This prompt automatically:
+- Finds and analyzes CodeRabbit reviews
+- Classifies issues by priority (high/medium/low)
+- Gets your approval before making changes
+- Systematically implements fixes
+- Marks resolved comments in CodeRabbit
+- Provides a completion summary
 
-### Available Tools
+### Manual Tool Usage
+
+<details>
+<summary>Available Tools</summary>
 
 #### 1. `get_coderabbit_reviews`
-
 Get all CodeRabbit reviews for a specific pull request.
 
-**Input:**
 ```json
 {
   "owner": "bradthebeeble",
@@ -173,61 +105,21 @@ Get all CodeRabbit reviews for a specific pull request.
 }
 ```
 
-**Output:**
-```json
-[
-  {
-    "id": 2969007538,
-    "submitted_at": "2025-06-28T21:43:11Z",
-    "html_url": "https://github.com/bradthebeeble/wiseguys/pull/15#pullrequestreview-2969007538",
-    "state": "COMMENTED",
-    "actionable_comments": 9,
-    "summary": "Configuration used: CodeRabbit UI, Review profile: CHILL",
-    "commit_id": "63e45f6dc32544e76f5bfbf02d8836b2a8a3da07"
-  }
-]
-```
-
 #### 2. `get_review_details`
-
 Get detailed information about a specific CodeRabbit review.
 
-**Input:**
 ```json
 {
   "owner": "bradthebeeble",
   "repo": "wiseguys",
   "pullNumber": 15,
   "reviewId": 2969007538
-}
-```
-
-**Output:**
-```json
-{
-  "id": 2969007538,
-  "submitted_at": "2025-06-28T21:43:11Z", 
-  "files_reviewed": [
-    "backend/controllers/messageController.js",
-    "backend/services/messageService.js",
-    "test-messaging.sh"
-  ],
-  "configuration_used": "CodeRabbit UI",
-  "review_profile": "CHILL",
-  "parsed_content": {
-    "actionable_comments": 9,
-    "duplicate_comments": 1,
-    "nitpick_comments": 4,
-    "comments": [...]
-  }
 }
 ```
 
 #### 3. `get_review_comments`
-
 Get all individual line comments from CodeRabbit reviews.
 
-**Input:**
 ```json
 {
   "owner": "bradthebeeble",
@@ -237,28 +129,9 @@ Get all individual line comments from CodeRabbit reviews.
 }
 ```
 
-**Output:**
-```json
-[
-  {
-    "id": 2173534099,
-    "path": "backend/routes/messages.js",
-    "line_range": { "start": 34, "end": 82 },
-    "severity": "warning",
-    "category": "Potential Issue", 
-    "description": "Add error handling for async route handlers to prevent unhandled promise rejections",
-    "ai_prompt": "In backend/routes/messages.js from lines 34 to 82, the async route handlers lack error handling...",
-    "committable_suggestion": "router.post('/', async (req, res, next) => { ... })",
-    "is_resolved": true
-  }
-]
-```
-
 #### 4. `get_comment_details`
-
 Get detailed information about a specific CodeRabbit comment.
 
-**Input:**
 ```json
 {
   "owner": "bradthebeeble",
@@ -267,29 +140,9 @@ Get detailed information about a specific CodeRabbit comment.
 }
 ```
 
-**Output:**
-```json
-{
-  "id": 2173534099,
-  "path": "backend/routes/messages.js",
-  "line_range": { "start": 34, "end": 82 },
-  "severity": "warning",
-  "category": "Potential Issue",
-  "description": "Add error handling for async route handlers",
-  "ai_prompt": "In backend/routes/messages.js from lines 34 to 82, the async route handlers lack error handling, which can cause unhandled promise rejections. To fix this, create an asyncHandler wrapper function...",
-  "file_context": "File: backend/routes/messages.js\n\nrouter.post('/', async (req, res) => {\n  await messageController.createMessage(req, res);\n});",
-  "fix_examples": [
-    "router.post('/', async (req, res, next) => {\n  try {\n    await messageController.createMessage(req, res);\n  } catch (error) {\n    next(error);\n  }\n});"
-  ],
-  "related_comments": [2173534100, 2173534101]
-}
-```
-
 #### 5. `resolve_comment`
-
 Mark a CodeRabbit comment as resolved.
 
-**Input:**
 ```json
 {
   "owner": "bradthebeeble", 
@@ -300,133 +153,23 @@ Mark a CodeRabbit comment as resolved.
 }
 ```
 
-**Output:**
-```json
-{
-  "success": true,
-  "message": "Added resolution comment to PR #15",
-  "comment_id": 2173534099,
-  "resolution_method": "reply"
-}
-```
+</details>
 
-## Quick Start
+<details>
+<summary>Development Installation</summary>
 
-1. **Get a GitHub Token**: Create a Personal Access Token at https://github.com/settings/tokens
-2. **Install the Server**: Follow the installation steps above
-3. **Configure Your AI Client**: Add both GitHub and CodeRabbit MCP servers to your configuration
-4. **Add Claude Code Command**: Copy the automated command for easier use (see below)
-5. **Start Using**: Ask your AI assistant to analyze CodeRabbit reviews!
-
-Example prompt:
-```
-Show me all CodeRabbit reviews for PR #15 in bradthebeeble/wiseguys, then get the details of any comments that have AI prompts I can implement.
-```
-
-### Automated CodeRabbit Processing
-
-For Claude Code users, this repository includes a pre-built command that automates the entire CodeRabbit review processing workflow:
-
-**Installation:**
-```bash
-# Copy the command to your Claude Code commands directory
-cp cc-commands/coderabbit.md ~/.claude/commands/
-```
-
-**Usage:**
-Simply run `/coderabbit` in Claude Code to automatically:
-- Find and analyze CodeRabbit reviews for your current branch
-- Classify issues by priority (high/medium/low)
-- Get your approval before making changes
-- Systematically implement fixes
-- Mark resolved comments in CodeRabbit
-- Provide a completion summary
-
-This command handles the entire workflow from discovery to resolution!
-
-## Integration Requirements
-
-### Supported AI Clients
-
-- **Claude Desktop**: Full support with configuration
-- **Claude Code**: Project-level MCP integration
-- **Other MCP Clients**: Any client supporting the Model Context Protocol
-
-### Authentication
-
-The GitHub Personal Access Token needs these permissions:
-- `repo` (for private repositories) or `public_repo` (for public only)
-- `read:org` (if accessing organization repositories)
-
-## Complete Setup Example
-
-Here's a complete working configuration for Claude Desktop using npx:
-
-```json
-{
-  "mcpServers": {
-    "coderabbitai": {
-      "command": "npx",
-      "args": ["coderabbitai-mcp"],
-      "env": {
-        "GITHUB_PERSONAL_ACCESS_TOKEN": "ghp_your_token_here"
-      }
-    }
-  }
-}
-```
-
-**Benefits of NPX approach:**
-- ✅ No local installation required
-- ✅ Always uses the latest version
-- ✅ Works across different machines
-- ✅ Simpler configuration
-
-### Verification Steps
-
-After configuration:
-
-1. **Test npx execution manually:**
-   ```bash
-   export GITHUB_PERSONAL_ACCESS_TOKEN=ghp_your_token_here
-   npx coderabbitai-mcp
-   ```
-   You should see: "CodeRabbit MCP server running on stdio"
-
-2. **Restart Claude Desktop** completely
-
-3. **Check Claude Desktop logs** for any errors:
-   - macOS: `~/Library/Logs/Claude/mcp-*.log`
-   - Look for "coderabbitai" server status and GitHub connection validation
-
-4. **Test with a simple query:**
-   "Show me the available MCP tools"
-   
-   You should see tools like `get_coderabbit_reviews`, `get_review_comments`, etc.
-
-5. **NPX-specific verification:**
-   ```bash
-   # Check if package is accessible
-   npm view coderabbitai-mcp version
-   
-   # Test direct execution
-   npx coderabbitai-mcp@latest
-   ```
-
-## Example Workflow
-
-1. **Browse Reviews**: Use `get_coderabbit_reviews` to see all CodeRabbit feedback on a PR
-2. **Analyze Comments**: Use `get_review_comments` to get actionable suggestions  
-3. **Get Implementation Guidance**: Use `get_comment_details` to get AI prompts for specific fixes
-4. **Implement Changes**: Use the AI prompts and committable suggestions to make code changes
-5. **Mark as Resolved**: Use `resolve_comment` to track which suggestions have been addressed
-
-## Development
+For development or local customization:
 
 ```bash
-# Install dependencies
+git clone https://github.com/bradthebeeble/coderabbitai-mcp.git
+cd coderabbitai-mcp
 npm install
+npm run build
+```
 
+### Development Commands
+
+```bash
 # Build TypeScript
 npm run build
 
@@ -435,44 +178,30 @@ npm run dev
 
 # Clean build files
 npm run clean
+
+# Test the server
+npm test
 ```
 
-## Claude Code Commands
+</details>
 
-The `cc-commands/` directory contains ready-to-use Claude Code commands:
+<details>
+<summary>Environment Variables</summary>
 
-### `/coderabbit` - Automated Review Processing
+Create a `.env` file (optional):
 
-A comprehensive command that provides a complete CodeRabbit review workflow:
-
-**Features:**
-- **Phase 1**: Discovery & Assessment - Finds PRs and extracts actionable items
-- **Phase 2**: Issue Classification - Categorizes by priority (high/medium/low/skip)
-- **Phase 3**: User Approval - Shows categorized issues for confirmation
-- **Phase 4**: Implementation - Systematically applies fixes with progress tracking
-- **Phase 5**: Completion - Marks comments as resolved and provides summary
-
-**Installation:**
 ```bash
-cp cc-commands/coderabbit.md ~/.claude/commands/coderabbit.md
+# GitHub Configuration (shorter variable name)
+GITHUB_PAT=ghp_your_token_here
+
+# Optional: CodeRabbit MCP Configuration
+CODERABBIT_LOG_LEVEL=info
 ```
 
-**Usage:**
-```
-/coderabbit
-```
+</details>
 
-The command includes intelligent error handling for large responses and optimized token usage strategies.
-
-## Architecture
-
-- **TypeScript**: Fully typed implementation with Zod validation
-- **MCP SDK**: Built on the official Model Context Protocol SDK
-- **Modular Design**: Each tool is implemented in its own module
-- **Error Handling**: Comprehensive error handling and validation
-- **GitHub Integration**: Designed to work with GitHub MCP servers
-
-## Troubleshooting
+<details>
+<summary>Troubleshooting</summary>
 
 ### Common Issues
 
@@ -480,57 +209,50 @@ The command includes intelligent error handling for large responses and optimize
 - Verify Node.js 18+ is installed: `node --version`
 - Test npx execution manually: `npx coderabbitai-mcp` 
 - Check your internet connection (npx downloads the latest version)
-- Ensure your Claude Desktop/Code configuration uses the correct syntax
-
-**Server not loading (Local installation):**
-- **Use absolute paths**: Replace `/path/to/coderabbitai-mcp` with the full absolute path (e.g., `/Users/yourname/coderabbitai-mcp`)
-- Ensure `npm run build` was executed successfully
-- Make sure the `start.sh` script is executable: `chmod +x start.sh`
-- Test the server manually: `./start.sh` should work without errors
 
 **GitHub API errors:**
 - Verify your GitHub token has the required permissions
-- Check that the GitHub MCP server is properly configured
-- Ensure you have access to the repositories you're querying
+- Check that you have access to the repositories you're querying
 
 **No CodeRabbit reviews found:**
 - Verify the PR has CodeRabbit reviews (check GitHub web interface)
-- Ensure CodeRabbit bot has reviewed the specific PR
-- Check that you're using the correct owner/repo/pullNumber
-
-**NPX-specific troubleshooting:**
-- Clear npm cache: `npm cache clean --force`
-- Use specific version: `npx coderabbitai-mcp@latest`
-- Check npm registry connectivity: `npm ping`
+- Ensure you're using the correct owner/repo/pullNumber
 
 ### Debug Mode
 
-Enable debug logging by setting environment variables:
+Enable debug logging:
 
 ```bash
-# For GitHub MCP
-GITHUB_API_DEBUG=true
-
-# For CodeRabbit MCP  
-CODERABBIT_LOG_LEVEL=debug
+CODERABBIT_LOG_LEVEL=debug npx coderabbitai-mcp
 ```
 
-### Logs
+</details>
 
-**Claude Desktop logs:**
-- macOS: `~/Library/Logs/Claude/mcp*.log`
-- Windows: `%APPDATA%/Claude/logs/mcp*.log`
+## Integration Requirements
 
-**Manual server logs:**
-```bash
-npm start 2>&1 | tee coderabbit-mcp.log
-```
+### Supported AI Clients
+
+- **Claude Desktop**: Full support with configuration
+- **Claude Code**: Project-level MCP integration with `/coderabbit-review` prompt
+- **Other MCP Clients**: Any client supporting the Model Context Protocol
+
+### Authentication
+
+The GitHub Personal Access Token needs these permissions:
+- `repo` (for private repositories) or `public_repo` (for public only)
+- `read:org` (if accessing organization repositories)
+
+## Architecture
+
+- **TypeScript**: Fully typed implementation with Zod validation
+- **MCP SDK**: Built on the official Model Context Protocol SDK
+- **Modular Design**: Each tool is implemented in its own module
+- **MCP Prompts**: Automated workflows available as slash commands
 
 ## API Rate Limits
 
 The server respects GitHub's API rate limits:
 - 5,000 requests/hour for authenticated requests
-- Uses the same limits as the GitHub MCP server
 - Automatically handles rate limit responses
 
 ## Contributing
@@ -541,37 +263,12 @@ The server respects GitHub's API rate limits:
 4. Run the build: `npm run build`
 5. Submit a pull request
 
-### Development Setup
-
-```bash
-git clone https://github.com/bradthebeeble/coderabbitai-mcp.git
-cd coderabbitai-mcp
-npm install
-npm run dev  # Watch mode for development
-```
-
-## Limitations
-
-- Comment resolution uses GitHub issue comments (API limitations)
-- Search scope limited to recent pull requests for comment lookup
-- Only supports CodeRabbit reviews (not other bot reviews)
-- Requires GitHub Personal Access Token with appropriate permissions
-
-## Roadmap
-
-- [ ] Support for GitHub Enterprise Server  
-- [ ] CodeRabbit webhook integration for real-time updates
-- [ ] Advanced filtering and search capabilities
-- [ ] Integration with other code review bots
-- [ ] Batch processing tools for multiple PRs
-- [ ] Export functionality for CodeRabbit insights
-
 ## License
 
 MIT
 
 ## Support
 
-- **Issues**: Report bugs and feature requests on [GitHub Issues](https://github.com/bradthebeeble/coderabbitai-mcp/issues)
-- **Discussions**: Join the conversation in [GitHub Discussions](https://github.com/bradthebeeble/coderabbitai-mcp/discussions)
+- **Issues**: [GitHub Issues](https://github.com/bradthebeeble/coderabbitai-mcp/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/bradthebeeble/coderabbitai-mcp/discussions)
 - **Documentation**: Full examples available in [EXAMPLES.md](./EXAMPLES.md)

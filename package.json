@@ -1,6 +1,6 @@
 {
   "name": "coderabbitai-mcp",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "MCP server for interacting with CodeRabbit AI reviews on GitHub pull requests. Enables LLMs to analyze, implement, and resolve CodeRabbit suggestions programmatically.",
   "main": "dist/index.js",
   "type": "module",
@@ -10,8 +10,7 @@
   "files": [
     "dist",
     "README.md",
-    "LICENSE",
-    "cc-commands"
+    "LICENSE"
   ],
   "scripts": {
     "build": "tsc && chmod 755 dist/index.js",
