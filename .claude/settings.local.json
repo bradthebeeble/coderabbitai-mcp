@@ -12,7 +12,8 @@
       "Bash(timeout 5s npm start)",
       "Bash(true)",
       "Bash(gtimeout:*)",
-      "Bash(node:*)"
+      "Bash(node:*)",
+      "Bash(chmod:*)"
     ]
   },
   "enableAllProjectMcpServers": true,

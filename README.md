@@ -46,9 +46,9 @@ Add to your Claude Desktop configuration file:
       }
     },
     "coderabbitai": {
-      "command": "node",
-      "args": ["dist/index.js"],
-      "cwd": "/path/to/coderabbitai-mcp"
+      "command": "/absolute/path/to/coderabbitai-mcp/start.sh",
+      "args": [],
+      "cwd": "/absolute/path/to/coderabbitai-mcp"
     }
   }
 }
@@ -69,9 +69,9 @@ Add to your project's `.claude/config.json`:
       }
     },
     "coderabbitai": {
-      "command": "node", 
-      "args": ["dist/index.js"],
-      "cwd": "/path/to/coderabbitai-mcp"
+      "command": "/absolute/path/to/coderabbitai-mcp/start.sh", 
+      "args": [],
+      "cwd": "/absolute/path/to/coderabbitai-mcp"
     }
   }
 }
@@ -322,18 +322,37 @@ Here's a complete working configuration for Claude Desktop:
       }
     },
     "coderabbitai": {
-      "command": "node",
-      "args": ["dist/index.js"],
+      "command": "/Users/yourname/coderabbitai-mcp/start.sh",
+      "args": [],
       "cwd": "/Users/yourname/coderabbitai-mcp"
     }
   }
 }
 ```
 
+**Important**: Replace `/Users/yourname/coderabbitai-mcp` with the actual absolute path where you cloned the repository.
+
+### Verification Steps
+
 After configuration:
-1. Restart Claude Desktop
-2. Verify both servers are loaded (check Claude Desktop logs)
-3. Test with a simple query: "List CodeRabbit reviews for a recent PR"
+
+1. **Test the startup script manually:**
+   ```bash
+   cd /path/to/coderabbitai-mcp
+   ./start.sh
+   ```
+   You should see: "CodeRabbit MCP server running on stdio"
+
+2. **Restart Claude Desktop** completely
+
+3. **Check Claude Desktop logs** for any errors:
+   - macOS: `~/Library/Logs/Claude/mcp-*.log`
+   - Look for both "github" and "coderabbitai" server status
+
+4. **Test with a simple query:**
+   "Show me the available MCP tools"
+   
+   You should see tools like `get_coderabbit_reviews`, `get_review_comments`, etc.
 
 ## Example Workflow
 
@@ -373,8 +392,10 @@ npm run clean
 
 **Server not loading:**
 - Verify Node.js 18+ is installed: `node --version`
-- Check that the path in `cwd` is correct
+- **Use absolute paths**: Replace `/path/to/coderabbitai-mcp` with the full absolute path (e.g., `/Users/yourname/coderabbitai-mcp`)
 - Ensure `npm run build` was executed successfully
+- Make sure the `start.sh` script is executable: `chmod +x start.sh`
+- Test the server manually: `./start.sh` should work without errors
 
 **GitHub API errors:**
 - Verify your GitHub token has the required permissions

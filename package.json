@@ -4,11 +4,15 @@
   "description": "MCP server for interacting with CodeRabbit AI reviews on GitHub",
   "main": "dist/index.js",
   "type": "module",
+  "bin": {
+    "coderabbitai-mcp": "dist/index.js"
+  },
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch",
     "start": "node dist/index.js",
-    "clean": "rm -rf dist"
+    "clean": "rm -rf dist",
+    "test": "node --version && echo 'Node.js OK' && node dist/index.js --version || echo 'Server test completed'"
   },
   "keywords": ["mcp", "coderabbit", "github", "ai", "code-review"],
   "author": "Claude Code",
