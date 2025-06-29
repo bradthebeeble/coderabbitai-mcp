@@ -18,12 +18,13 @@ A Model Context Protocol (MCP) server for interacting with CodeRabbit AI reviews
 No installation required! Run directly with npx:
 
 ```bash
-npx coderabbitai-mcp
+# Install the latest stable version explicitly
+npx coderabbitai-mcp@latest
 ```
 
 ### Prerequisites
 
-1. **GitHub Personal Access Token**: Create at https://github.com/settings/tokens
+1. **GitHub Personal Access Token**: Create at <https://github.com/settings/tokens>
    - Required scopes: `repo` (for private repos) or `public_repo` (for public only)
 2. **Node.js 18+**: Required for running the server
 
@@ -77,7 +78,7 @@ Add to your project's `.claude/config.json`:
 
 Use the built-in MCP prompt for complete workflow automation:
 
-```
+```text
 /coderabbit-review owner:bradthebeeble repo:wiseguys pullNumber:15
 ```
 
