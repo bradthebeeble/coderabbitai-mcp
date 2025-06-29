@@ -12,6 +12,15 @@ A Model Context Protocol (MCP) server for interacting with CodeRabbit AI reviews
 
 ## Installation
 
+### Quick Start (Recommended)
+
+The easiest way to use this MCP server is via npx - no installation required:
+
+```bash
+# Run directly with npx (latest version)
+npx coderabbitai-mcp
+```
+
 ### Prerequisites
 
 1. **GitHub Personal Access Token**: Required for GitHub API access
@@ -19,7 +28,9 @@ A Model Context Protocol (MCP) server for interacting with CodeRabbit AI reviews
    - Required scopes: `repo` (for private repos) or `public_repo` (for public only)
 2. **Node.js 18+**: Required for running the server
 
-### Install Dependencies
+### Development Installation
+
+For development or local customization:
 
 ```bash
 git clone https://github.com/bradthebeeble/coderabbitai-mcp.git
@@ -37,6 +48,22 @@ Add to your Claude Desktop configuration file:
 **macOS**: `~/Library/Application Support/Claude/claude_desktop_config.json`
 **Windows**: `%APPDATA%/Claude/claude_desktop_config.json`
 
+#### Option 1: NPX (Recommended)
+```json
+{
+  "mcpServers": {
+    "coderabbitai": {
+      "command": "npx",
+      "args": ["coderabbitai-mcp"],
+      "env": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "ghp_your_token_here"
+      }
+    }
+  }
+}
+```
+
+#### Option 2: Local Installation
 ```json
 {
   "mcpServers": {
@@ -56,6 +83,22 @@ Add to your Claude Desktop configuration file:
 
 Add to your project's `.claude/config.json`:
 
+#### Option 1: NPX (Recommended)
+```json
+{
+  "mcpServers": {
+    "coderabbitai": {
+      "command": "npx",
+      "args": ["coderabbitai-mcp"],
+      "env": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "ghp_your_token_here"
+      }
+    }
+  }
+}
+```
+
+#### Option 2: Local Installation
 ```json
 {
   "mcpServers": {
@@ -317,15 +360,14 @@ The GitHub Personal Access Token needs these permissions:
 
 ## Complete Setup Example
 
-Here's a complete working configuration for Claude Desktop:
+Here's a complete working configuration for Claude Desktop using npx:
 
 ```json
 {
   "mcpServers": {
     "coderabbitai": {
-      "command": "/Users/yourname/coderabbitai-mcp/start.sh",
-      "args": [],
-      "cwd": "/Users/yourname/coderabbitai-mcp",
+      "command": "npx",
+      "args": ["coderabbitai-mcp"],
       "env": {
         "GITHUB_PERSONAL_ACCESS_TOKEN": "ghp_your_token_here"
       }
@@ -334,16 +376,20 @@ Here's a complete working configuration for Claude Desktop:
 }
 ```
 
-**Important**: Replace `/Users/yourname/coderabbitai-mcp` with the actual absolute path where you cloned the repository.
+**Benefits of NPX approach:**
+- ✅ No local installation required
+- ✅ Always uses the latest version
+- ✅ Works across different machines
+- ✅ Simpler configuration
 
 ### Verification Steps
 
 After configuration:
 
-1. **Test the startup script manually:**
+1. **Test npx execution manually:**
    ```bash
-   cd /path/to/coderabbitai-mcp
-   ./start.sh
+   export GITHUB_PERSONAL_ACCESS_TOKEN=ghp_your_token_here
+   npx coderabbitai-mcp
    ```
    You should see: "CodeRabbit MCP server running on stdio"
 
@@ -357,6 +403,15 @@ After configuration:
    "Show me the available MCP tools"
    
    You should see tools like `get_coderabbit_reviews`, `get_review_comments`, etc.
+
+5. **NPX-specific verification:**
+   ```bash
+   # Check if package is accessible
+   npm view coderabbitai-mcp version
+   
+   # Test direct execution
+   npx coderabbitai-mcp@latest
+   ```
 
 ## Example Workflow
 
@@ -421,8 +476,13 @@ The command includes intelligent error handling for large responses and optimize
 
 ### Common Issues
 
-**Server not loading:**
+**Server not loading (NPX):**
 - Verify Node.js 18+ is installed: `node --version`
+- Test npx execution manually: `npx coderabbitai-mcp` 
+- Check your internet connection (npx downloads the latest version)
+- Ensure your Claude Desktop/Code configuration uses the correct syntax
+
+**Server not loading (Local installation):**
 - **Use absolute paths**: Replace `/path/to/coderabbitai-mcp` with the full absolute path (e.g., `/Users/yourname/coderabbitai-mcp`)
 - Ensure `npm run build` was executed successfully
 - Make sure the `start.sh` script is executable: `chmod +x start.sh`
@@ -437,6 +497,11 @@ The command includes intelligent error handling for large responses and optimize
 - Verify the PR has CodeRabbit reviews (check GitHub web interface)
 - Ensure CodeRabbit bot has reviewed the specific PR
 - Check that you're using the correct owner/repo/pullNumber
+
+**NPX-specific troubleshooting:**
+- Clear npm cache: `npm cache clean --force`
+- Use specific version: `npx coderabbitai-mcp@latest`
+- Check npm registry connectivity: `npm ping`
 
 ### Debug Mode
 

@@ -1,22 +1,55 @@
 {
   "name": "coderabbitai-mcp",
   "version": "1.0.0",
-  "description": "MCP server for interacting with CodeRabbit AI reviews on GitHub",
+  "description": "MCP server for interacting with CodeRabbit AI reviews on GitHub pull requests. Enables LLMs to analyze, implement, and resolve CodeRabbit suggestions programmatically.",
   "main": "dist/index.js",
   "type": "module",
   "bin": {
     "coderabbitai-mcp": "dist/index.js"
   },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE",
+    "cc-commands"
+  ],
   "scripts": {
-    "build": "tsc",
+    "build": "tsc && chmod 755 dist/index.js",
     "dev": "tsc --watch",
     "start": "node dist/index.js",
     "clean": "rm -rf dist",
-    "test": "node --version && echo 'Node.js OK' && node dist/index.js --version || echo 'Server test completed'"
+    "test": "node --version && echo 'Node.js OK' && node dist/index.js --version || echo 'Server test completed'",
+    "prepublishOnly": "npm run clean && npm run build",
+    "publish-npm": "npm run prepublishOnly && npm publish"
   },
-  "keywords": ["mcp", "coderabbit", "github", "ai", "code-review"],
+  "keywords": [
+    "mcp",
+    "coderabbit", 
+    "github",
+    "ai",
+    "code-review",
+    "model-context-protocol",
+    "llm",
+    "claude",
+    "typescript",
+    "automation",
+    "pull-request",
+    "review-comments",
+    "npx"
+  ],
   "author": "Claude Code",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/bradthebeeble/coderabbitai-mcp.git"
+  },
+  "homepage": "https://github.com/bradthebeeble/coderabbitai-mcp#readme",
+  "bugs": {
+    "url": "https://github.com/bradthebeeble/coderabbitai-mcp/issues"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.0.0",
     "zod": "^3.22.0"
