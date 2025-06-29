@@ -11,6 +11,9 @@ import {
   Prompt,
 } from "@modelcontextprotocol/sdk/types.js";
 import { z } from "zod";
+import { readFileSync } from "fs";
+import { resolve, dirname } from "path";
+import { fileURLToPath } from "url";
 
 // Import tool implementations
 import { getCoderabbitReviews, GetCoderabbitReviewsInput } from "./tools/get-reviews.js";
@@ -20,6 +23,36 @@ import { getCommentDetails, GetCommentDetailsInput } from "./tools/get-comment-d
 import { resolveComment, ResolveCommentInput } from "./tools/resolve-comment.js";
 import { resolveConversation, ResolveConversationInput } from "./tools/resolve-conversation.js";
 import { GitHubClient } from "./github-client.js";
+
+/**
+ * Reads the version from package.json with robust error handling
+ */
+function getPackageVersion(): string {
+  try {
+    // Get the directory of the current module
+    const __filename = fileURLToPath(import.meta.url);
+    const __dirname = dirname(__filename);
+    
+    // Resolve path to package.json (one level up from src/)
+    const packageJsonPath = resolve(__dirname, "..", "package.json");
+    
+    // Read and parse package.json
+    const packageJsonContent = readFileSync(packageJsonPath, "utf-8");
+    const packageJson = JSON.parse(packageJsonContent);
+    
+    // Validate that version exists and is a string
+    if (typeof packageJson.version !== "string" || !packageJson.version) {
+      throw new Error("Invalid or missing version in package.json");
+    }
+    
+    return packageJson.version;
+  } catch (error) {
+    // Fallback to a default version if reading fails
+    console.error("Warning: Failed to read version from package.json:", error);
+    console.error("Falling back to default version");
+    return "1.0.0"; // Safe fallback version
+  }
+}
 
 // CodeRabbit review processing prompt template
 const CODERABBIT_REVIEW_PROMPT = `I'll process CodeRabbit reviews for this pull request systematically. Here's my optimized workflow:
@@ -71,9 +104,10 @@ Present the categorized todo list to the user for approval before starting work:
 For approved issues:
 1. **Work on HIGH priority items first**
 2. **Use task tracking to monitor progress** (mark in_progress, then completed)
-3. **Apply fixes systematically** by reading files and making targeted edits
-4. **Get individual comment details** only when needed using \`get_comment_details\`
-5. **Resolve each comment** with \`resolve_comment\` including fix details
+3. **Launch each task as a subtask** using the Task tool for focused execution
+4. **Apply fixes systematically** by reading files and making targeted edits
+5. **Get individual comment details** only when needed using \`get_comment_details\`
+6. **Resolve each comment** with \`resolve_comment\` including fix details
 
 ## **Phase 5: Completion**
 
@@ -102,7 +136,7 @@ class CodeRabbitMCPServer {
     this.server = new Server(
       {
         name: "coderabbitai-mcp",
-        version: "1.1.0",
+        version: getPackageVersion(),
       },
       {
         capabilities: {
