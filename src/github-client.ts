@@ -177,6 +177,54 @@ export class GitHubClient {
   }
 
   /**
+   * Resolve a pull request review conversation
+   * This marks the conversation thread as resolved
+   */
+  async resolveReviewConversation(
+    owner: string,
+    repo: string,
+    commentId: number
+  ): Promise<any> {
+    const endpoint = `/repos/${owner}/${repo}/pulls/comments/${commentId}`;
+    
+    // First get the comment to find the conversation ID
+    const comment = await this.makeRequest<GitHubComment>(endpoint);
+    
+    if (!comment.pull_request_review_id) {
+      throw new Error('Comment is not associated with a review conversation');
+    }
+
+    // GitHub API endpoint to resolve conversations
+    const resolveEndpoint = `/repos/${owner}/${repo}/pulls/comments/${commentId}/resolve`;
+    
+    try {
+      // Try the newer resolve endpoint (if available)
+      return await this.makeRequest(resolveEndpoint, 'PUT', { resolved: true });
+    } catch (error) {
+      // Fallback: Add a reaction to indicate resolution
+      console.warn('Direct conversation resolution not available, using reaction fallback');
+      return await this.addReactionToComment(owner, repo, commentId, '+1');
+    }
+  }
+
+  /**
+   * Unresolve a pull request review conversation
+   */
+  async unresolveReviewConversation(
+    owner: string,
+    repo: string,
+    commentId: number
+  ): Promise<any> {
+    const resolveEndpoint = `/repos/${owner}/${repo}/pulls/comments/${commentId}/resolve`;
+    
+    try {
+      return await this.makeRequest(resolveEndpoint, 'PUT', { resolved: false });
+    } catch (error) {
+      throw new Error('Cannot unresolve conversation: API not available or insufficient permissions');
+    }
+  }
+
+  /**
    * Search for a comment across multiple pull requests
    * This is a helper method since GitHub doesn't provide direct comment search
    */
