@@ -272,12 +272,34 @@ Mark a CodeRabbit comment as resolved.
 1. **Get a GitHub Token**: Create a Personal Access Token at https://github.com/settings/tokens
 2. **Install the Server**: Follow the installation steps above
 3. **Configure Your AI Client**: Add both GitHub and CodeRabbit MCP servers to your configuration
-4. **Start Using**: Ask your AI assistant to analyze CodeRabbit reviews!
+4. **Add Claude Code Command**: Copy the automated command for easier use (see below)
+5. **Start Using**: Ask your AI assistant to analyze CodeRabbit reviews!
 
 Example prompt:
 ```
 Show me all CodeRabbit reviews for PR #15 in bradthebeeble/wiseguys, then get the details of any comments that have AI prompts I can implement.
 ```
+
+### Automated CodeRabbit Processing
+
+For Claude Code users, this repository includes a pre-built command that automates the entire CodeRabbit review processing workflow:
+
+**Installation:**
+```bash
+# Copy the command to your Claude Code commands directory
+cp cc-commands/coderabbit.md ~/.claude/commands/
+```
+
+**Usage:**
+Simply run `/coderabbit` in Claude Code to automatically:
+- Find and analyze CodeRabbit reviews for your current branch
+- Classify issues by priority (high/medium/low)
+- Get your approval before making changes
+- Systematically implement fixes
+- Mark resolved comments in CodeRabbit
+- Provide a completion summary
+
+This command handles the entire workflow from discovery to resolution!
 
 ## Integration Requirements
 
@@ -359,6 +381,33 @@ npm run dev
 # Clean build files
 npm run clean
 ```
+
+## Claude Code Commands
+
+The `cc-commands/` directory contains ready-to-use Claude Code commands:
+
+### `/coderabbit` - Automated Review Processing
+
+A comprehensive command that provides a complete CodeRabbit review workflow:
+
+**Features:**
+- **Phase 1**: Discovery & Assessment - Finds PRs and extracts actionable items
+- **Phase 2**: Issue Classification - Categorizes by priority (high/medium/low/skip)
+- **Phase 3**: User Approval - Shows categorized issues for confirmation
+- **Phase 4**: Implementation - Systematically applies fixes with progress tracking
+- **Phase 5**: Completion - Marks comments as resolved and provides summary
+
+**Installation:**
+```bash
+cp cc-commands/coderabbit.md ~/.claude/commands/coderabbit.md
+```
+
+**Usage:**
+```
+/coderabbit
+```
+
+The command includes intelligent error handling for large responses and optimized token usage strategies.
 
 ## Architecture
 
