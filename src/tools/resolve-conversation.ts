@@ -17,6 +17,7 @@ export interface ResolveConversationResult {
   comment_id: number;
   resolved: boolean;
   resolution_method: string;
+  error_details?: string;
 }
 
 /**
@@ -141,7 +142,8 @@ export async function resolveConversation(
       message: `Failed to ${resolved ? 'resolve' : 'unresolve'} conversation: ${error instanceof Error ? error.message : String(error)}`,
       comment_id: commentId,
       resolved: false,
-      resolution_method: 'error'
+      resolution_method: 'error',
+      error_details: error instanceof Error ? error.stack : undefined
     };
   }
 }

@@ -179,6 +179,9 @@ export class GitHubClient {
   /**
    * Resolve a pull request review conversation
    * This marks the conversation thread as resolved
+   * 
+   * Note: GitHub's REST API doesn't support direct conversation resolution.
+   * This method uses a fallback approach with reactions to indicate resolution.
    */
   async resolveReviewConversation(
     owner: string,
@@ -194,33 +197,32 @@ export class GitHubClient {
       throw new Error('Comment is not associated with a review conversation');
     }
 
-    // GitHub API endpoint to resolve conversations
-    const resolveEndpoint = `/repos/${owner}/${repo}/pulls/comments/${commentId}/resolve`;
-    
-    try {
-      // Try the newer resolve endpoint (if available)
-      return await this.makeRequest(resolveEndpoint, 'PUT', { resolved: true });
-    } catch (error) {
-      // Fallback: Add a reaction to indicate resolution
-      console.warn('Direct conversation resolution not available, using reaction fallback');
-      return await this.addReactionToComment(owner, repo, commentId, '+1');
-    }
+    // GitHub API doesn't support direct conversation resolution via REST API
+    // Fallback: Add a reaction to indicate resolution
+    console.warn('GitHub conversation resolution API not available; using reaction fallback');
+    return await this.addReactionToComment(owner, repo, commentId, '+1');
   }
 
   /**
    * Unresolve a pull request review conversation
+   * 
+   * Note: GitHub's REST API doesn't support direct conversation resolution.
+   * This method uses a fallback approach with reactions to indicate unresolving.
    */
   async unresolveReviewConversation(
     owner: string,
     repo: string,
     commentId: number
   ): Promise<any> {
-    const resolveEndpoint = `/repos/${owner}/${repo}/pulls/comments/${commentId}/resolve`;
+    // GitHub API doesn't support direct conversation resolution via REST API
+    // For unresolving, we can only indicate this through external means
+    console.warn('GitHub conversation resolution API not available for unresolving');
     
+    // Fallback: Add a reaction to indicate the conversation needs attention
     try {
-      return await this.makeRequest(resolveEndpoint, 'PUT', { resolved: false });
+      return await this.addReactionToComment(owner, repo, commentId, 'eyes');
     } catch (error) {
-      throw new Error('Cannot unresolve conversation: API not available or insufficient permissions');
+      throw new Error('Cannot unresolve conversation: GitHub API does not support this operation via REST API');
     }
   }
 
