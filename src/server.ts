@@ -4,8 +4,11 @@ import {
   CallToolRequestSchema,
   ErrorCode,
   ListToolsRequestSchema,
+  ListPromptsRequestSchema,
+  GetPromptRequestSchema,
   McpError,
   Tool,
+  Prompt,
 } from "@modelcontextprotocol/sdk/types.js";
 import { z } from "zod";
 
@@ -17,6 +20,74 @@ import { getCommentDetails, GetCommentDetailsInput } from "./tools/get-comment-d
 import { resolveComment, ResolveCommentInput } from "./tools/resolve-comment.js";
 import { resolveConversation, ResolveConversationInput } from "./tools/resolve-conversation.js";
 import { GitHubClient } from "./github-client.js";
+
+// CodeRabbit review processing prompt template
+const CODERABBIT_REVIEW_PROMPT = `I'll process CodeRabbit reviews for this pull request systematically. Here's my optimized workflow:
+
+## **Phase 1: Discovery & Assessment**
+
+1. **Find open PR** for current branch
+2. **Get CodeRabbit review summary** from \`get_coderabbit_reviews\` (use summary data, avoid large comment responses)
+3. **Extract actionable items** from review body using actionable_comments count and summary
+4. **Create todo list** with prioritized issues from review summary (avoid calling \`get_review_comments\` initially due to token limits)
+
+## **Phase 2: Issue Classification**
+
+**Assessment Guidelines:**
+- **HIGH PRIORITY (Must Fix):**
+  - Security vulnerabilities
+  - Breaking changes or bugs
+  - TypeScript/compilation errors
+  - Performance issues with significant impact
+  - Logic errors or incorrect implementations
+
+- **MEDIUM PRIORITY (Should Fix):**
+  - Type safety improvements
+  - Performance optimizations (moderate impact)
+  - Code maintainability issues
+  - Missing error handling
+
+- **LOW PRIORITY (Nice to Have):**
+  - Style/formatting nitpicks
+  - Code organization suggestions
+  - Minor optimizations
+  - Documentation improvements
+
+- **SKIP (Not Actionable):**
+  - Purely subjective style preferences
+  - Suggestions without clear benefit
+  - Comments that require significant architecture changes
+  - Out-of-scope recommendations
+
+## **Phase 3: User Approval**
+
+Present the categorized todo list to the user for approval before starting work:
+- Show issue priorities and brief descriptions
+- Ask user to confirm which issues to address
+- Allow user to modify priorities or skip items
+
+## **Phase 4: Implementation**
+
+For approved issues:
+1. **Work on HIGH priority items first**
+2. **Use task tracking to monitor progress** (mark in_progress, then completed)
+3. **Apply fixes systematically** by reading files and making targeted edits
+4. **Get individual comment details** only when needed using \`get_comment_details\`
+5. **Resolve each comment** with \`resolve_comment\` including fix details
+
+## **Phase 5: Completion**
+
+- Mark all todos as completed
+- Report final status: "Ready to merge" or list remaining issues
+- Provide summary of all fixes applied
+
+## **Error Handling for Large Responses:**
+
+If \`get_review_comments\` exceeds token limits:
+1. Extract actionable items from review summary instead
+2. Parse review body for specific file/line mentions
+3. Use targeted \`get_comment_details\` for individual issues
+4. Work from review metadata rather than full comment dump`;
 
 /**
  * CodeRabbit MCP Server
@@ -31,11 +102,12 @@ class CodeRabbitMCPServer {
     this.server = new Server(
       {
         name: "coderabbitai-mcp",
-        version: "1.0.0",
+        version: "1.1.0",
       },
       {
         capabilities: {
           tools: {},
+          prompts: {},
         },
       }
     );
@@ -45,11 +117,12 @@ class CodeRabbitMCPServer {
       this.githubClient = new GitHubClient();
     } catch (error) {
       console.error("Failed to initialize GitHub client:", error);
-      console.error("Please ensure GITHUB_PERSONAL_ACCESS_TOKEN environment variable is set");
+      console.error("Please ensure GITHUB_PAT environment variable is set");
       throw error;
     }
 
     this.setupToolHandlers();
+    this.setupPromptHandlers();
     this.setupErrorHandling();
   }
 
@@ -61,6 +134,70 @@ class CodeRabbitMCPServer {
     process.on("SIGINT", async () => {
       await this.server.close();
       process.exit(0);
+    });
+  }
+
+  private setupPromptHandlers(): void {
+    // Handle prompt listing
+    this.server.setRequestHandler(ListPromptsRequestSchema, async () => {
+      return {
+        prompts: [
+          {
+            name: "coderabbit-review",
+            description: "Automated CodeRabbit review processing and issue resolution for the current branch",
+            arguments: [
+              {
+                name: "owner",
+                description: "Repository owner (username or organization)",
+                required: true
+              },
+              {
+                name: "repo", 
+                description: "Repository name",
+                required: true
+              },
+              {
+                name: "pullNumber",
+                description: "Pull request number to process",
+                required: true
+              }
+            ]
+          }
+        ] as Prompt[]
+      };
+    });
+
+    // Handle prompt execution
+    this.server.setRequestHandler(GetPromptRequestSchema, async (request) => {
+      const { name, arguments: args } = request.params;
+
+      if (name === "coderabbit-review") {
+        const owner = args?.owner || "";
+        const repo = args?.repo || "";
+        const pullNumber = args?.pullNumber || "";
+
+        const promptText = CODERABBIT_REVIEW_PROMPT + 
+          (owner && repo && pullNumber 
+            ? `\n\nLet me start the process for ${owner}/${repo}#${pullNumber}:`
+            : '\n\nPlease provide the repository owner, repo name, and pull request number to begin processing.');
+
+        return {
+          messages: [
+            {
+              role: "user",
+              content: {
+                type: "text",
+                text: promptText
+              }
+            }
+          ]
+        };
+      }
+
+      throw new McpError(
+        ErrorCode.MethodNotFound,
+        `Unknown prompt: ${name}`
+      );
     });
   }
 

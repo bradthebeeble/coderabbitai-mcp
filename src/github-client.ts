@@ -26,11 +26,11 @@ export class GitHubClient {
   private baseUrl: string;
 
   constructor(token?: string, baseUrl: string = 'https://api.github.com') {
-    this.token = token || process.env.GITHUB_PERSONAL_ACCESS_TOKEN || '';
+    this.token = token || process.env.GITHUB_PAT || '';
     this.baseUrl = baseUrl;
 
     if (!this.token) {
-      throw new Error('GITHUB_PERSONAL_ACCESS_TOKEN environment variable is required');
+      throw new Error('GITHUB_PAT environment variable is required');
     }
   }
 
