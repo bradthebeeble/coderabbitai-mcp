@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { GitHubReview, CodeRabbitReview, ParsedCodeRabbitContent } from '../types.js';
+import { GitHubClient } from '../github-client.js';
 
 const GetCoderabbitReviewsSchema = z.object({
   owner: z.string().min(1, "Repository owner is required"),
@@ -111,19 +112,15 @@ function parseCoderabbitReviewBody(body: string): ParsedCodeRabbitContent {
  */
 export async function getCoderabbitReviews(
   input: GetCoderabbitReviewsInput,
-  githubMcp: any
+  githubClient: GitHubClient
 ): Promise<CodeRabbitReview[]> {
   // Validate input
   const validatedInput = GetCoderabbitReviewsSchema.parse(input);
   const { owner, repo, pullNumber } = validatedInput;
   
   try {
-    // Get all reviews for the PR using GitHub MCP
-    const reviews: GitHubReview[] = await githubMcp.get_pull_request_reviews({
-      owner,
-      repo, 
-      pullNumber
-    });
+    // Get all reviews for the PR using GitHub API
+    const reviews: GitHubReview[] = await githubClient.getPullRequestReviews(owner, repo, pullNumber);
     
     // Filter for CodeRabbit reviews only
     const coderabbitReviews = reviews.filter(review => 

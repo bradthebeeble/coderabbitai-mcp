@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { GitHubComment, CodeRabbitCommentDetails } from '../types.js';
+import { GitHubClient } from '../github-client.js';
 
 const GetCommentDetailsSchema = z.object({
   owner: z.string().min(1, "Repository owner is required"),
@@ -89,51 +90,24 @@ function findRelatedComments(
  */
 export async function getCommentDetails(
   input: GetCommentDetailsInput,
-  githubMcp: any
+  githubClient: GitHubClient
 ): Promise<CodeRabbitCommentDetails> {
   // Validate input
   const validatedInput = GetCommentDetailsSchema.parse(input);
   const { owner, repo, commentId } = validatedInput;
   
   try {
-    // First, get all PR comments to find the specific comment and its context
-    // We need to find which PR this comment belongs to
+    // Use the GitHub client's helper method to find the comment across recent PRs
+    const result = await githubClient.findCommentInRecentPRs(owner, repo, commentId);
     
-    // Get recent PRs to search for the comment (this is a limitation of GitHub API)
-    const recentPRs = await githubMcp.list_pull_requests({
-      owner,
-      repo,
-      state: 'all',
-      sort: 'updated',
-      direction: 'desc',
-      perPage: 20
-    });
-    
-    let targetComment: GitHubComment | null = null;
-    let allPRComments: GitHubComment[] = [];
-    
-    // Search through recent PRs to find the comment
-    for (const pr of recentPRs) {
-      try {
-        const comments = await githubMcp.get_pull_request_comments({
-          owner,
-          repo,
-          pullNumber: pr.number
-        });
-        
-        allPRComments = comments;
-        targetComment = comments.find((c: GitHubComment) => c.id === commentId);
-        
-        if (targetComment) break;
-      } catch (error) {
-        // Continue searching other PRs
-        continue;
-      }
-    }
-    
-    if (!targetComment) {
+    if (!result) {
       throw new Error(`Comment with ID ${commentId} not found in recent pull requests`);
     }
+    
+    const { comment: targetComment, pr } = result;
+    
+    // Get all comments from this PR for context
+    const allPRComments = await githubClient.getPullRequestComments(owner, repo, pr.number);
     
     // Verify this is a CodeRabbit comment
     if (targetComment.user.login !== 'coderabbitai[bot]') {

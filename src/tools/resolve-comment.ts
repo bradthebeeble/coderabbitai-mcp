@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { GitHubClient } from '../github-client.js';
 
 const ResolveCommentSchema = z.object({
   owner: z.string().min(1, "Repository owner is required"),
@@ -28,47 +29,17 @@ export interface ResolveCommentResult {
  */
 export async function resolveComment(
   input: ResolveCommentInput,
-  githubMcp: any
+  githubClient: GitHubClient
 ): Promise<ResolveCommentResult> {
   // Validate input
   const validatedInput = ResolveCommentSchema.parse(input);
   const { owner, repo, commentId, resolution, note } = validatedInput;
   
   try {
-    // First, find the PR that contains this comment
-    const recentPRs = await githubMcp.list_pull_requests({
-      owner,
-      repo,
-      state: 'all',
-      sort: 'updated', 
-      direction: 'desc',
-      perPage: 20
-    });
+    // Use the GitHub client's helper method to find the comment across recent PRs
+    const result = await githubClient.findCommentInRecentPRs(owner, repo, commentId);
     
-    let targetPR: any = null;
-    let targetComment: any = null;
-    
-    // Search through recent PRs to find the comment
-    for (const pr of recentPRs) {
-      try {
-        const comments = await githubMcp.get_pull_request_comments({
-          owner,
-          repo,
-          pullNumber: pr.number
-        });
-        
-        targetComment = comments.find((c: any) => c.id === commentId);
-        
-        if (targetComment) {
-          targetPR = pr;
-          break;
-        }
-      } catch (error) {
-        continue;
-      }
-    }
-    
-    if (!targetComment || !targetPR) {
+    if (!result) {
       return {
         success: false,
         message: `Comment with ID ${commentId} not found in recent pull requests`,
@@ -76,6 +47,8 @@ export async function resolveComment(
         resolution_method: 'none'
       };
     }
+    
+    const { comment: targetComment, pr: targetPR } = result;
     
     // Verify this is a CodeRabbit comment
     if (targetComment.user.login !== 'coderabbitai[bot]') {
@@ -111,12 +84,12 @@ export async function resolveComment(
       const replyBody = `${emoji} **${message}**${userNote}\n\n*Resolved via CodeRabbit MCP*`;
       
       // Add reply comment to the PR
-      await githubMcp.add_issue_comment({
+      await githubClient.addIssueComment(
         owner,
         repo,
-        issue_number: targetPR.number,
-        body: `**Resolving CodeRabbit comment [#${commentId}](${targetComment.html_url})**\n\n${replyBody}`
-      });
+        targetPR.number,
+        `**Resolving CodeRabbit comment [#${commentId}](${targetComment.html_url})**\n\n${replyBody}`
+      );
       
       resultMessage = `Added resolution comment to PR #${targetPR.number}`;
       

@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { GitHubComment, CodeRabbitComment } from '../types.js';
+import { GitHubClient } from '../github-client.js';
 
 const GetReviewCommentsSchema = z.object({
   owner: z.string().min(1, "Repository owner is required"),
@@ -96,19 +97,15 @@ function parseCoderabbitComment(comment: GitHubComment): CodeRabbitComment {
  */
 export async function getReviewComments(
   input: GetReviewCommentsInput,
-  githubMcp: any
+  githubClient: GitHubClient
 ): Promise<CodeRabbitComment[]> {
   // Validate input
   const validatedInput = GetReviewCommentsSchema.parse(input);
   const { owner, repo, pullNumber, reviewId } = validatedInput;
   
   try {
-    // Get all comments for the PR using GitHub MCP
-    const allComments: GitHubComment[] = await githubMcp.get_pull_request_comments({
-      owner,
-      repo,
-      pullNumber
-    });
+    // Get all comments for the PR using GitHub API
+    const allComments: GitHubComment[] = await githubClient.getPullRequestComments(owner, repo, pullNumber);
     
     // Filter for CodeRabbit comments
     let coderabbitComments = allComments.filter(comment => 

@@ -15,28 +15,7 @@ import { getReviewDetails, GetReviewDetailsInput } from "./tools/get-review-deta
 import { getReviewComments, GetReviewCommentsInput } from "./tools/get-comments.js";
 import { getCommentDetails, GetCommentDetailsInput } from "./tools/get-comment-details.js";
 import { resolveComment, ResolveCommentInput } from "./tools/resolve-comment.js";
-
-/**
- * Mock GitHub MCP interface for development/testing
- * In production, this would connect to the actual GitHub MCP server
- */
-class MockGitHubMCP {
-  async get_pull_request_reviews(params: any) {
-    throw new Error("GitHub MCP not available - please configure GitHub MCP server");
-  }
-  
-  async get_pull_request_comments(params: any) {
-    throw new Error("GitHub MCP not available - please configure GitHub MCP server");
-  }
-  
-  async list_pull_requests(params: any) {
-    throw new Error("GitHub MCP not available - please configure GitHub MCP server");
-  }
-  
-  async add_issue_comment(params: any) {
-    throw new Error("GitHub MCP not available - please configure GitHub MCP server");
-  }
-}
+import { GitHubClient } from "./github-client.js";
 
 /**
  * CodeRabbit MCP Server
@@ -45,7 +24,7 @@ class MockGitHubMCP {
  */
 class CodeRabbitMCPServer {
   private server: Server;
-  private githubMcp: MockGitHubMCP;
+  private githubClient: GitHubClient;
 
   constructor() {
     this.server = new Server(
@@ -60,7 +39,15 @@ class CodeRabbitMCPServer {
       }
     );
 
-    this.githubMcp = new MockGitHubMCP();
+    // Initialize GitHub client with environment variable
+    try {
+      this.githubClient = new GitHubClient();
+    } catch (error) {
+      console.error("Failed to initialize GitHub client:", error);
+      console.error("Please ensure GITHUB_PERSONAL_ACCESS_TOKEN environment variable is set");
+      throw error;
+    }
+
     this.setupToolHandlers();
     this.setupErrorHandling();
   }
@@ -223,7 +210,7 @@ class CodeRabbitMCPServer {
         switch (name) {
           case "get_coderabbit_reviews": {
             const input = args as GetCoderabbitReviewsInput;
-            const result = await getCoderabbitReviews(input, this.githubMcp);
+            const result = await getCoderabbitReviews(input, this.githubClient);
             return {
               content: [
                 {
@@ -236,7 +223,7 @@ class CodeRabbitMCPServer {
 
           case "get_review_details": {
             const input = args as GetReviewDetailsInput;
-            const result = await getReviewDetails(input, this.githubMcp);
+            const result = await getReviewDetails(input, this.githubClient);
             return {
               content: [
                 {
@@ -249,7 +236,7 @@ class CodeRabbitMCPServer {
 
           case "get_review_comments": {
             const input = args as GetReviewCommentsInput;
-            const result = await getReviewComments(input, this.githubMcp);
+            const result = await getReviewComments(input, this.githubClient);
             return {
               content: [
                 {
@@ -262,7 +249,7 @@ class CodeRabbitMCPServer {
 
           case "get_comment_details": {
             const input = args as GetCommentDetailsInput;
-            const result = await getCommentDetails(input, this.githubMcp);
+            const result = await getCommentDetails(input, this.githubClient);
             return {
               content: [
                 {
@@ -275,7 +262,7 @@ class CodeRabbitMCPServer {
 
           case "resolve_comment": {
             const input = args as ResolveCommentInput;
-            const result = await resolveComment(input, this.githubMcp);
+            const result = await resolveComment(input, this.githubClient);
             return {
               content: [
                 {
@@ -307,16 +294,36 @@ class CodeRabbitMCPServer {
   }
 
   /**
-   * Set the GitHub MCP client for production use
+   * Validate GitHub token and connection
    */
-  setGitHubMCP(githubMcp: any): void {
-    this.githubMcp = githubMcp;
+  async validateGitHubConnection(): Promise<boolean> {
+    try {
+      const validation = await this.githubClient.validateToken();
+      if (validation.valid) {
+        console.error(`✅ GitHub connection validated for user: ${validation.user}`);
+        console.error(`📋 Token scopes: ${validation.scopes.join(', ')}`);
+        return true;
+      } else {
+        console.error("❌ GitHub token validation failed");
+        return false;
+      }
+    } catch (error) {
+      console.error("❌ GitHub connection error:", error);
+      return false;
+    }
   }
 
   async run(): Promise<void> {
+    // Validate GitHub connection on startup
+    const isValid = await this.validateGitHubConnection();
+    if (!isValid) {
+      console.error("⚠️  GitHub connection validation failed, but server will still start");
+      console.error("   Some features may not work properly");
+    }
+
     const transport = new StdioServerTransport();
     await this.server.connect(transport);
-    console.error("CodeRabbit MCP server running on stdio");
+    console.error("🚀 CodeRabbit MCP server running on stdio");
   }
 }
 

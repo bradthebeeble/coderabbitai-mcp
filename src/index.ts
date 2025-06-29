@@ -6,13 +6,15 @@ import { CodeRabbitMCPServer } from "./server.js";
  * Main entry point for the CodeRabbit MCP Server
  */
 async function main() {
+  // Ensure GITHUB_PERSONAL_ACCESS_TOKEN is set
+  if (!process.env.GITHUB_PERSONAL_ACCESS_TOKEN) {
+    console.error("❌ Error: GITHUB_PERSONAL_ACCESS_TOKEN environment variable is required");
+    console.error("   Please set your GitHub Personal Access Token as an environment variable");
+    console.error("   Example: export GITHUB_PERSONAL_ACCESS_TOKEN=ghp_your_token_here");
+    process.exit(1);
+  }
+
   const server = new CodeRabbitMCPServer();
-  
-  // In a production environment, you would configure the GitHub MCP client here
-  // For example:
-  // const githubMcp = new GitHubMCPClient();
-  // server.setGitHubMCP(githubMcp);
-  
   await server.run();
 }
 

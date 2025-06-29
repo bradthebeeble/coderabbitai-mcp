@@ -13,7 +13,10 @@
       "Bash(true)",
       "Bash(gtimeout:*)",
       "Bash(node:*)",
-      "Bash(chmod:*)"
+      "Bash(chmod:*)",
+      "Bash(grep:*)",
+      "Bash(npm run build:*)",
+      "Bash(rm:*)"
     ]
   },
   "enableAllProjectMcpServers": true,
