@@ -199,25 +199,6 @@ for comment_id in $(get_actionable_comments); do
 done
 ```
 
-## Real-world Example: The Wiseguys PR
-
-Based on the actual CodeRabbit review of PR #15 in bradthebeeble/wiseguys, here are the types of issues CodeRabbit identified and how this MCP server helps address them:
-
-1. **Error Handling**: Missing try-catch blocks in async routes
-2. **Security**: ReDoS vulnerabilities in search functions  
-3. **Performance**: N+1 query problems, missing database indexes
-4. **Architecture**: Initialization race conditions, lifecycle management
-5. **Code Quality**: JSON parsing with jq instead of grep/cut
-6. **Configuration**: Missing environment-based error message sanitization
-
-Each of these comes with:
-- Specific AI prompts for implementation
-- Ready-to-commit code suggestions
-- File paths and line numbers
-- Context about why the change is needed
-
-This enables a conversational workflow where you can discuss each issue with Claude, understand the implications, and implement fixes systematically.
-
 ## Benefits
 
 1. **Conversational Code Review**: Discuss CodeRabbit suggestions naturally with Claude
