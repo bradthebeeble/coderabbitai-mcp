@@ -11,6 +11,9 @@ import {
   Prompt,
 } from "@modelcontextprotocol/sdk/types.js";
 import { z } from "zod";
+import { readFileSync } from "fs";
+import { resolve, dirname } from "path";
+import { fileURLToPath } from "url";
 
 // Import tool implementations
 import { getCoderabbitReviews, GetCoderabbitReviewsInput } from "./tools/get-reviews.js";
@@ -20,6 +23,36 @@ import { getCommentDetails, GetCommentDetailsInput } from "./tools/get-comment-d
 import { resolveComment, ResolveCommentInput } from "./tools/resolve-comment.js";
 import { resolveConversation, ResolveConversationInput } from "./tools/resolve-conversation.js";
 import { GitHubClient } from "./github-client.js";
+
+/**
+ * Reads the version from package.json with robust error handling
+ */
+function getPackageVersion(): string {
+  try {
+    // Get the directory of the current module
+    const __filename = fileURLToPath(import.meta.url);
+    const __dirname = dirname(__filename);
+    
+    // Resolve path to package.json (one level up from src/)
+    const packageJsonPath = resolve(__dirname, "..", "package.json");
+    
+    // Read and parse package.json
+    const packageJsonContent = readFileSync(packageJsonPath, "utf-8");
+    const packageJson = JSON.parse(packageJsonContent);
+    
+    // Validate that version exists and is a string
+    if (typeof packageJson.version !== "string" || !packageJson.version) {
+      throw new Error("Invalid or missing version in package.json");
+    }
+    
+    return packageJson.version;
+  } catch (error) {
+    // Fallback to a default version if reading fails
+    console.error("Warning: Failed to read version from package.json:", error);
+    console.error("Falling back to default version");
+    return "1.0.0"; // Safe fallback version
+  }
+}
 
 // CodeRabbit review processing prompt template
 const CODERABBIT_REVIEW_PROMPT = `I'll process CodeRabbit reviews for this pull request systematically. Here's my optimized workflow:
@@ -103,7 +136,7 @@ class CodeRabbitMCPServer {
     this.server = new Server(
       {
         name: "coderabbitai-mcp",
-        version: "1.1.0",
+        version: getPackageVersion(),
       },
       {
         capabilities: {
