@@ -12,20 +12,113 @@ A Model Context Protocol (MCP) server for interacting with CodeRabbit AI reviews
 
 ## Installation
 
+### Prerequisites
+
+1. **GitHub Personal Access Token**: Required for GitHub API access
+2. **Node.js 18+**: Required for running the server
+
+### Install Dependencies
+
 ```bash
+git clone https://github.com/bradthebeeble/coderabbitai-mcp.git
+cd coderabbitai-mcp
 npm install
 npm run build
 ```
 
+## Configuration
+
+### Claude Desktop
+
+Add to your Claude Desktop configuration file:
+
+**macOS**: `~/Library/Application Support/Claude/claude_desktop_config.json`
+**Windows**: `%APPDATA%/Claude/claude_desktop_config.json`
+
+```json
+{
+  "mcpServers": {
+    "github": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-github"],
+      "env": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "your_github_token_here"
+      }
+    },
+    "coderabbitai": {
+      "command": "node",
+      "args": ["dist/index.js"],
+      "cwd": "/path/to/coderabbitai-mcp"
+    }
+  }
+}
+```
+
+### Claude Code
+
+Add to your project's `.claude/config.json`:
+
+```json
+{
+  "mcpServers": {
+    "github": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-github"],
+      "env": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "your_github_token_here"
+      }
+    },
+    "coderabbitai": {
+      "command": "node", 
+      "args": ["dist/index.js"],
+      "cwd": "/path/to/coderabbitai-mcp"
+    }
+  }
+}
+```
+
+### Environment Variables
+
+Create a `.env` file (optional):
+
+```bash
+# GitHub Configuration (handled by GitHub MCP)
+GITHUB_PERSONAL_ACCESS_TOKEN=your_github_token_here
+
+# CodeRabbit MCP Configuration
+CODERABBIT_LOG_LEVEL=info
+```
+
+### Docker (Alternative)
+
+```bash
+# Build the image
+docker build -t coderabbitai-mcp .
+
+# Run with Docker Compose
+docker run --rm \
+  -e GITHUB_PERSONAL_ACCESS_TOKEN=your_token \
+  coderabbitai-mcp
+```
+
 ## Usage
 
+### Prerequisites
+
+1. **GitHub MCP Server**: This server requires the GitHub MCP server to be running alongside it
+2. **GitHub Access**: Ensure your GitHub token has access to the repositories you want to analyze
+
 ### Starting the Server
+
+The server is automatically started by your MCP client (Claude Desktop/Code) when configured properly.
+
+For manual testing:
 
 ```bash
 npm start
 ```
 
-The server runs on stdio transport and can be integrated with MCP-compatible clients.
+The server runs on stdio transport and integrates with MCP-compatible clients.
 
 ### Available Tools
 
@@ -179,13 +272,68 @@ Mark a CodeRabbit comment as resolved.
 }
 ```
 
-## Integration with GitHub MCP
+## Quick Start
 
-This server is designed to work alongside a GitHub MCP server. In production, you would:
+1. **Get a GitHub Token**: Create a Personal Access Token at https://github.com/settings/tokens
+2. **Install the Server**: Follow the installation steps above
+3. **Configure Your AI Client**: Add both GitHub and CodeRabbit MCP servers to your configuration
+4. **Start Using**: Ask your AI assistant to analyze CodeRabbit reviews!
 
-1. Configure the GitHub MCP server with proper authentication
-2. Connect this CodeRabbit MCP server to the GitHub MCP
-3. Use both servers together for complete GitHub + CodeRabbit functionality
+Example prompt:
+```
+Show me all CodeRabbit reviews for PR #15 in bradthebeeble/wiseguys, then get the details of any comments that have AI prompts I can implement.
+```
+
+## Integration Requirements
+
+### GitHub MCP Server
+
+This server **requires** the [GitHub MCP Server](https://github.com/github/github-mcp-server) to function. The CodeRabbit MCP server uses the GitHub MCP to:
+
+- Fetch pull request reviews
+- Get individual comments 
+- Access repository information
+- Post resolution comments
+
+### Supported AI Clients
+
+- **Claude Desktop**: Full support with configuration
+- **Claude Code**: Project-level MCP integration
+- **Other MCP Clients**: Any client supporting the Model Context Protocol
+
+### Authentication
+
+The GitHub Personal Access Token needs these permissions:
+- `repo` (for private repositories) or `public_repo` (for public only)
+- `read:org` (if accessing organization repositories)
+
+## Complete Setup Example
+
+Here's a complete working configuration for Claude Desktop:
+
+```json
+{
+  "mcpServers": {
+    "github": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-github"],
+      "env": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "ghp_your_token_here"
+      }
+    },
+    "coderabbitai": {
+      "command": "node",
+      "args": ["dist/index.js"],
+      "cwd": "/Users/yourname/coderabbitai-mcp"
+    }
+  }
+}
+```
+
+After configuration:
+1. Restart Claude Desktop
+2. Verify both servers are loaded (check Claude Desktop logs)
+3. Test with a simple query: "List CodeRabbit reviews for a recent PR"
 
 ## Example Workflow
 
@@ -219,12 +367,93 @@ npm run clean
 - **Error Handling**: Comprehensive error handling and validation
 - **GitHub Integration**: Designed to work with GitHub MCP servers
 
+## Troubleshooting
+
+### Common Issues
+
+**Server not loading:**
+- Verify Node.js 18+ is installed: `node --version`
+- Check that the path in `cwd` is correct
+- Ensure `npm run build` was executed successfully
+
+**GitHub API errors:**
+- Verify your GitHub token has the required permissions
+- Check that the GitHub MCP server is properly configured
+- Ensure you have access to the repositories you're querying
+
+**No CodeRabbit reviews found:**
+- Verify the PR has CodeRabbit reviews (check GitHub web interface)
+- Ensure CodeRabbit bot has reviewed the specific PR
+- Check that you're using the correct owner/repo/pullNumber
+
+### Debug Mode
+
+Enable debug logging by setting environment variables:
+
+```bash
+# For GitHub MCP
+GITHUB_API_DEBUG=true
+
+# For CodeRabbit MCP  
+CODERABBIT_LOG_LEVEL=debug
+```
+
+### Logs
+
+**Claude Desktop logs:**
+- macOS: `~/Library/Logs/Claude/mcp*.log`
+- Windows: `%APPDATA%/Claude/logs/mcp*.log`
+
+**Manual server logs:**
+```bash
+npm start 2>&1 | tee coderabbit-mcp.log
+```
+
+## API Rate Limits
+
+The server respects GitHub's API rate limits:
+- 5,000 requests/hour for authenticated requests
+- Uses the same limits as the GitHub MCP server
+- Automatically handles rate limit responses
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch: `git checkout -b feature-name`
+3. Make your changes and add tests
+4. Run the build: `npm run build`
+5. Submit a pull request
+
+### Development Setup
+
+```bash
+git clone https://github.com/bradthebeeble/coderabbitai-mcp.git
+cd coderabbitai-mcp
+npm install
+npm run dev  # Watch mode for development
+```
+
 ## Limitations
 
 - Requires a configured GitHub MCP server for full functionality
 - Comment resolution uses GitHub issue comments (API limitations)
 - Search scope limited to recent pull requests for comment lookup
+- Only supports CodeRabbit reviews (not other bot reviews)
+
+## Roadmap
+
+- [ ] Support for GitHub Enterprise Server
+- [ ] Direct GitHub API integration (remove GitHub MCP dependency)
+- [ ] CodeRabbit webhook integration for real-time updates
+- [ ] Advanced filtering and search capabilities
+- [ ] Integration with other code review bots
 
 ## License
 
 MIT
+
+## Support
+
+- **Issues**: Report bugs and feature requests on [GitHub Issues](https://github.com/bradthebeeble/coderabbitai-mcp/issues)
+- **Discussions**: Join the conversation in [GitHub Discussions](https://github.com/bradthebeeble/coderabbitai-mcp/discussions)
+- **Documentation**: Full examples available in [EXAMPLES.md](./EXAMPLES.md)

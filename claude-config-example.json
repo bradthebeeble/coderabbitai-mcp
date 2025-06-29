@@ -7,7 +7,7 @@
         "@modelcontextprotocol/server-github"
       ],
       "env": {
-        "GITHUB_PERSONAL_ACCESS_TOKEN": "your_github_token_here"
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "ghp_your_token_here"
       }
     },
     "coderabbitai": {
@@ -15,7 +15,35 @@
       "args": [
         "dist/index.js"
       ],
-      "cwd": "/Users/asafatzmon/dev/coderabbitai_mcp"
+      "cwd": "/path/to/coderabbitai-mcp",
+      "env": {
+        "CODERABBIT_LOG_LEVEL": "info"
+      }
     }
   }
 }
+
+// Alternative Docker configuration:
+// {
+//   "mcpServers": {
+//     "github": {
+//       "command": "npx",
+//       "args": ["-y", "@modelcontextprotocol/server-github"],
+//       "env": {
+//         "GITHUB_PERSONAL_ACCESS_TOKEN": "ghp_your_token_here"
+//       }
+//     },
+//     "coderabbitai": {
+//       "command": "docker",
+//       "args": [
+//         "run",
+//         "--rm",
+//         "-i",
+//         "coderabbitai-mcp"
+//       ],
+//       "env": {
+//         "GITHUB_PERSONAL_ACCESS_TOKEN": "ghp_your_token_here"
+//       }
+//     }
+//   }
+// }
