@@ -71,9 +71,10 @@ Present the categorized todo list to the user for approval before starting work:
 For approved issues:
 1. **Work on HIGH priority items first**
 2. **Use task tracking to monitor progress** (mark in_progress, then completed)
-3. **Apply fixes systematically** by reading files and making targeted edits
-4. **Get individual comment details** only when needed using \`get_comment_details\`
-5. **Resolve each comment** with \`resolve_comment\` including fix details
+3. **Launch each task as a subtask** using the Task tool for focused execution
+4. **Apply fixes systematically** by reading files and making targeted edits
+5. **Get individual comment details** only when needed using \`get_comment_details\`
+6. **Resolve each comment** with \`resolve_comment\` including fix details
 
 ## **Phase 5: Completion**
 
