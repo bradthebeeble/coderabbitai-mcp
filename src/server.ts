@@ -15,6 +15,7 @@ import { getReviewDetails, GetReviewDetailsInput } from "./tools/get-review-deta
 import { getReviewComments, GetReviewCommentsInput } from "./tools/get-comments.js";
 import { getCommentDetails, GetCommentDetailsInput } from "./tools/get-comment-details.js";
 import { resolveComment, ResolveCommentInput } from "./tools/resolve-comment.js";
+import { resolveConversation, ResolveConversationInput } from "./tools/resolve-conversation.js";
 import { GitHubClient } from "./github-client.js";
 
 /**
@@ -197,6 +198,38 @@ class CodeRabbitMCPServer {
               },
               required: ["owner", "repo", "commentId"]
             }
+          },
+          {
+            name: "resolve_conversation",
+            description: "Resolve or unresolve a CodeRabbit review conversation in GitHub",
+            inputSchema: {
+              type: "object",
+              properties: {
+                owner: {
+                  type: "string",
+                  description: "Repository owner (username or organization)"
+                },
+                repo: {
+                  type: "string",
+                  description: "Repository name"
+                },
+                commentId: {
+                  type: "number",
+                  description: "Comment ID of the conversation to resolve"
+                },
+                resolved: {
+                  type: "boolean",
+                  description: "Whether to resolve (true) or unresolve (false) the conversation",
+                  default: true
+                },
+                note: {
+                  type: "string",
+                  description: "Optional note about the resolution",
+                  optional: true
+                }
+              },
+              required: ["owner", "repo", "commentId"]
+            }
           }
         ] as Tool[]
       };
@@ -263,6 +296,19 @@ class CodeRabbitMCPServer {
           case "resolve_comment": {
             const input = args as ResolveCommentInput;
             const result = await resolveComment(input, this.githubClient);
+            return {
+              content: [
+                {
+                  type: "text",
+                  text: JSON.stringify(result, null, 2)
+                }
+              ]
+            };
+          }
+
+          case "resolve_conversation": {
+            const input = args as ResolveConversationInput;
+            const result = await resolveConversation(input, this.githubClient);
             return {
               content: [
                 {

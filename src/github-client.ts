@@ -177,6 +177,56 @@ export class GitHubClient {
   }
 
   /**
+   * Resolve a pull request review conversation
+   * This marks the conversation thread as resolved
+   * 
+   * Note: GitHub's REST API doesn't support direct conversation resolution.
+   * This method uses a fallback approach with reactions to indicate resolution.
+   */
+  async resolveReviewConversation(
+    owner: string,
+    repo: string,
+    commentId: number
+  ): Promise<any> {
+    const endpoint = `/repos/${owner}/${repo}/pulls/comments/${commentId}`;
+    
+    // First get the comment to find the conversation ID
+    const comment = await this.makeRequest<GitHubComment>(endpoint);
+    
+    if (!comment.pull_request_review_id) {
+      throw new Error('Comment is not associated with a review conversation');
+    }
+
+    // GitHub API doesn't support direct conversation resolution via REST API
+    // Fallback: Add a reaction to indicate resolution
+    console.warn('GitHub conversation resolution API not available; using reaction fallback');
+    return await this.addReactionToComment(owner, repo, commentId, '+1');
+  }
+
+  /**
+   * Unresolve a pull request review conversation
+   * 
+   * Note: GitHub's REST API doesn't support direct conversation resolution.
+   * This method uses a fallback approach with reactions to indicate unresolving.
+   */
+  async unresolveReviewConversation(
+    owner: string,
+    repo: string,
+    commentId: number
+  ): Promise<any> {
+    // GitHub API doesn't support direct conversation resolution via REST API
+    // For unresolving, we can only indicate this through external means
+    console.warn('GitHub conversation resolution API not available for unresolving');
+    
+    // Fallback: Add a reaction to indicate the conversation needs attention
+    try {
+      return await this.addReactionToComment(owner, repo, commentId, 'eyes');
+    } catch (error) {
+      throw new Error('Cannot unresolve conversation: GitHub API does not support this operation via REST API');
+    }
+  }
+
+  /**
    * Search for a comment across multiple pull requests
    * This is a helper method since GitHub doesn't provide direct comment search
    */

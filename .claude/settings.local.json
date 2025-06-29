@@ -16,7 +16,15 @@
       "Bash(chmod:*)",
       "Bash(grep:*)",
       "Bash(npm run build:*)",
-      "Bash(rm:*)"
+      "Bash(rm:*)",
+      "Bash(git commit:*)",
+      "Bash(git checkout:*)",
+      "Bash(git push:*)",
+      "mcp__github__list_pull_requests",
+      "mcp__github__search_repositories",
+      "mcp__coderabbitai__get_coderabbit_reviews",
+      "mcp__coderabbitai__get_review_comments",
+      "mcp__coderabbitai__resolve_comment"
     ]
   },
   "enableAllProjectMcpServers": true,
