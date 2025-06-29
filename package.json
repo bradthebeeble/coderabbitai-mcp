@@ -1,0 +1,24 @@
+{
+  "name": "coderabbitai-mcp",
+  "version": "1.0.0",
+  "description": "MCP server for interacting with CodeRabbit AI reviews on GitHub",
+  "main": "dist/index.js",
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "start": "node dist/index.js",
+    "clean": "rm -rf dist"
+  },
+  "keywords": ["mcp", "coderabbit", "github", "ai", "code-review"],
+  "author": "Claude Code",
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0",
+    "zod": "^3.22.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0"
+  }
+}

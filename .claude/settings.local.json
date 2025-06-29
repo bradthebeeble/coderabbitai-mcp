@@ -1,0 +1,23 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:www.npmjs.com)",
+      "WebFetch(domain:docs.coderabbit.ai)",
+      "mcp__github__get_pull_request",
+      "mcp__github__get_pull_request_reviews",
+      "mcp__github__get_pull_request_comments",
+      "Bash(touch:*)",
+      "Bash(mkdir:*)",
+      "Bash(npm install)",
+      "Bash(timeout 5s npm start)",
+      "Bash(true)",
+      "Bash(gtimeout:*)",
+      "Bash(node:*)"
+    ]
+  },
+  "enableAllProjectMcpServers": true,
+  "enabledMcpjsonServers": [
+    "github",
+    "ask-human-for-context"
+  ]
+}

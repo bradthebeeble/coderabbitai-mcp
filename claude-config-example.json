@@ -1,0 +1,21 @@
+{
+  "mcpServers": {
+    "github": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-github"
+      ],
+      "env": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "your_github_token_here"
+      }
+    },
+    "coderabbitai": {
+      "command": "node",
+      "args": [
+        "dist/index.js"
+      ],
+      "cwd": "/Users/asafatzmon/dev/coderabbitai_mcp"
+    }
+  }
+}
