@@ -28,22 +28,28 @@ npx coderabbitai-mcp@latest
    - Required scopes: `repo` (for private repos) or `public_repo` (for public only)
 2. **Node.js 18+**: Required for running the server
 
-<details>
-<summary>Configuration</summary>
+## Configuration
 
-### Claude Desktop
+### Claude Desktop Configuration
 
-Add to your Claude Desktop configuration file:
+To use the CodeRabbit MCP server in Claude Desktop, add it to your configuration file:
 
-**macOS**: `~/Library/Application Support/Claude/claude_desktop_config.json`
-**Windows**: `%APPDATA%/Claude/claude_desktop_config.json`
+**Configuration file locations:**
+- **macOS**: `~/Library/Application Support/Claude/claude_desktop_config.json`
+- **Windows**: `%APPDATA%/Claude/claude_desktop_config.json`
+- **Linux**: `~/.config/Claude/claude_desktop_config.json`
+
+**Step-by-step setup:**
+
+1. Open your Claude Desktop configuration file (create it if it doesn't exist)
+2. Add the CodeRabbit MCP server configuration:
 
 ```json
 {
   "mcpServers": {
     "coderabbitai": {
       "command": "npx",
-      "args": ["coderabbitai-mcp"],
+      "args": ["coderabbitai-mcp@latest"],
       "env": {
         "GITHUB_PAT": "ghp_your_token_here"
       }
@@ -52,16 +58,28 @@ Add to your Claude Desktop configuration file:
 }
 ```
 
-### Claude Code
+3. Replace `ghp_your_token_here` with your actual GitHub Personal Access Token
+4. Save the file and restart Claude Desktop
 
-Add to your project's `.claude/config.json`:
+### Claude Code Configuration
+
+To use the CodeRabbit MCP server in Claude Code, configure it in your project:
+
+**Step-by-step setup:**
+
+1. Create a `.claude` directory in your project root (if it doesn't exist):
+   ```bash
+   mkdir .claude
+   ```
+
+2. Create or edit `.claude/config.json`:
 
 ```json
 {
   "mcpServers": {
     "coderabbitai": {
       "command": "npx",
-      "args": ["coderabbitai-mcp"],
+      "args": ["coderabbitai-mcp@latest"],
       "env": {
         "GITHUB_PAT": "ghp_your_token_here"
       }
@@ -70,7 +88,26 @@ Add to your project's `.claude/config.json`:
 }
 ```
 
-</details>
+3. Replace `ghp_your_token_here` with your actual GitHub Personal Access Token
+4. The server will be available next time you start Claude Code in this project
+
+**Pro tip**: For security, you can use environment variables instead of hardcoding the token:
+
+```json
+{
+  "mcpServers": {
+    "coderabbitai": {
+      "command": "npx",
+      "args": ["coderabbitai-mcp@latest"],
+      "env": {
+        "GITHUB_PAT": "${GITHUB_PAT}"
+      }
+    }
+  }
+}
+```
+
+Then set the `GITHUB_PAT` environment variable in your shell before starting Claude Code.
 
 ## Usage
 
